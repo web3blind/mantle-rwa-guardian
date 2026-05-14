@@ -1,89 +1,80 @@
 # Mantle RWA Guardian
 
-AI risk/yield copilot for Mantle portfolios holding mETH, USDY, mUSD, and FBTC.
+AI risk/yield copilot for Mantle wallets that hold real-world-asset and yield-bearing assets such as mETH, USDY, mUSD, and FBTC.
 
-Public demo domain: https://mantleguardian.xyz
+- Live demo: https://mantleguardian.xyz
+- Source: https://github.com/web3blind/mantle-rwa-guardian
+- Demo wallet: `0x588846213a30fd36244e0ae0ebb2374516da836c`
 
-The MVP analyzes real Mantle Mainnet wallet data, generates a structured risk/yield report, and anchors the AI assessment on-chain via a Mantle Sepolia contract.
+## What it does
 
-## Current implementation status
+Mantle RWA Guardian turns a wallet address into an explainable audit:
 
-- Project initialized in `/root/hackatons/mantle-rwa-guardian`.
-- `PLAN.md` contains the full implementation plan.
-- TypeScript/Vitest tooling configured.
-- Mantle asset registry implemented and tested.
-- Deterministic risk rules, snapshot hashing, wallet snapshot collector, yield collector, and deploy scripts implemented.
-- `RWAGuardian` deployed to Mantle Sepolia and demo assessments published on-chain.
-- AI report generation implemented through OpenRouter when `OPENROUTER_API_KEY` is set; deterministic fallback remains available for reproducible local demos.
-- Backend API implemented: `GET /api/analyze?wallet=...` and `POST /api/publish`.
-- Accessible frontend MVP implemented under `public/` and served by `npm run dev`.
-- Deployment wallet generated locally; private key is stored only in `.env` and must not be committed or printed.
+1. Reads real Mantle Mainnet token balances and pricing context.
+2. Detects tracked RWA/yield exposure: mETH, USDY, mUSD, and FBTC.
+3. Scores portfolio risk with deterministic rules.
+4. Generates a human-readable AI report when `OPENROUTER_API_KEY` is configured.
+5. Publishes assessment hashes to a Mantle Sepolia proof contract.
+6. Shows the user a copyable audit result with transaction, contract, wallet, portfolio hash, and report hash.
 
-## Agent flow
+The UI is intentionally demo-friendly: long hashes are shortened visually, proof fields have copy buttons, and cached audit timing is shown as human text such as `Cache refresh in 39 minutes` instead of raw ISO timestamps.
 
-```text
-collect Mantle data -> LLM generates report -> publish hashes on-chain -> return report with tx proof in the UI
-```
+## Why Mantle
 
-`OPENROUTER_API_KEY` enables the real LLM report path. If the key is absent or the model call fails, the app falls back to a deterministic local report so demos and tests remain stable. Recommended hackathon model: `openai/gpt-5.4-mini` (stronger reasoning than `openai/gpt-4.1-mini`, still usually about one cent or less per audit at current prompt sizes). OpenRouter usage/cost is logged from `response.usage` for internal spend tracking, but the browser UI keeps this accounting detail hidden from end users.
-
-Repeat audits for the same wallet are cached in SQLite for **1 hour** by default (`AUDIT_CACHE_TTL_SECONDS=3600`). During the cache window the UI returns the previous report and transaction link instead of publishing a duplicate on-chain assessment. Cache database path: `./data/audit-cache.sqlite` by default.
-
-## Network decision
-
-For the hackathon MVP:
-
-- Analyze portfolios on **Mantle Mainnet** because real mETH/USDY/mUSD/FBTC balances and transfer history are there.
-- Deploy the proof/assessment contract on **Mantle Sepolia** because it is safer and cheaper for demos.
-- The same deployer address can later be funded on Mantle Mainnet if mainnet deployment becomes required.
-
-## Commands
-
-```bash
-npm install
-npm test
-npm run typecheck
-npm run compile:contracts
-npm run check:deploy-wallet
-npm run deploy:sepolia
-npm run publish:demo
-npm run dev
-```
-
-`npm run dev` starts the local full-stack MVP at `http://localhost:3000` unless `PORT` is set. The public aaPanel deployment runs on `127.0.0.1:3004` behind Nginx.
-
-Optional built-in auto-deploy can be enabled for PM2 deployments:
-
-```env
-AUTO_DEPLOY=true
-AUTO_DEPLOY_BRANCH=main
-AUTO_DEPLOY_INTERVAL_MS=60000
-```
-
-When enabled, the running server resolves the repository root from its own module path, checks `origin/<branch>` once per interval, validates updates with `npm ci`, `npm test`, and `npm run typecheck`, then exits with code 0 so PM2 can restart it with the new code. Failed deploy checks are logged and keep the current process alive. The old cron/panel shell deploy wrapper was removed; use the built-in watcher only, so there is a single deploy mechanism.
-
-- `GET /api/analyze?wallet=<address>` returns a live Mantle Mainnet portfolio analysis, risk score, AI-generated agent report when OpenRouter is configured, and report/portfolio hashes.
-- `POST /api/audit` runs the full demo flow in one backend action: collect data, ask the LLM, publish hashes to `RWAGuardian` on Mantle Sepolia, then return the report plus transaction link. If the same wallet was audited during the last 1 hour, it returns the cached SQLite record and old transaction link instead of publishing again.
-- `POST /api/publish` remains available for scripts/tests, but the browser UI no longer exposes a separate publish button.
-- `/` serves the accessible browser UI for analysis and publishing.
-
-## Demo wallet for analysis
+RWA and yield-bearing assets are useful only if users can understand their exposure. A balance list is not enough. The project demonstrates a simple pattern for consumer-facing portfolio intelligence on Mantle:
 
 ```text
-0x588846213a30fd36244e0ae0ebb2374516da836c
+Mantle Mainnet portfolio data -> AI explanation -> Mantle Sepolia verifiable proof
 ```
 
-## Deploy wallet
+The demo analyzes real Mainnet data while publishing proof on Sepolia, which keeps the hackathon demo safer and cheaper without pretending the portfolio itself is test data.
 
-Address only is safe to share:
+## Live demo flow
+
+1. Open https://mantleguardian.xyz.
+2. Keep the prefilled demo wallet or paste another Mantle wallet.
+3. Press **Run audit and publish proof**.
+4. Review:
+   - risk score and summary;
+   - tracked positions;
+   - AI agent report;
+   - Mantle Sepolia proof details;
+   - copy buttons for transaction, contract, wallet, portfolio hash, and report hash.
+
+Repeat audits for the same wallet are cached in SQLite for 1 hour by default. During the cache window, the app returns the previous report and transaction link instead of publishing duplicate on-chain assessments.
+
+## Architecture
 
 ```text
-0x7ec2adFd40548c87458Ba838CaBb3DCF98609bD5
+Browser UI
+  -> Node.js API
+    -> Mantle Mainnet RPC / public data sources
+    -> deterministic risk engine
+    -> optional OpenRouter AI report
+    -> SQLite audit cache
+    -> Mantle Sepolia RWAGuardian proof contract
 ```
 
-Private key is stored in `.env` as `DEPLOYER_PRIVATE_KEY`.
+### Main components
 
-## Mantle Sepolia deployment
+- `public/` — accessible vanilla JS/CSS frontend.
+- `src/server.ts` — Node.js HTTP server and API routes.
+- `src/collectors/` — wallet snapshot, token balances, and yield/pricing context.
+- `src/risk/` — deterministic scoring and findings.
+- `src/ai/` — AI report generation with deterministic fallback for tests/local demos.
+- `src/api/auditWallet.ts` — full audit flow used by the browser.
+- `src/storage/` — SQLite cache and deterministic snapshot hashing.
+- `contracts/src/RWAGuardian.sol` — proof contract.
+- `src/autoDeploy.ts` — built-in PM2 auto-deploy watcher.
+
+## API
+
+- `GET /api/analyze?wallet=<address>` — returns Mantle Mainnet portfolio analysis, risk score, report, and hashes.
+- `POST /api/audit` — full demo action: collect data, generate report, publish hashes on Mantle Sepolia, and return proof details.
+- `POST /api/publish` — lower-level publish route for scripts/tests.
+- `GET /health` — service health check.
+
+## Mantle Sepolia proof contract
 
 Contract:
 
@@ -104,24 +95,93 @@ Demo assessment transactions:
 0xa0071352ede71f71157742e22f84d7975b1453824de6b3a78ce22c21714953a1
 ```
 
-Deployment metadata is stored in `contracts/deployment.mantle-sepolia.json`.
-Demo assessment metadata is stored in `contracts/demo-assessment.mantle-sepolia.json`.
+Deployment metadata lives in `contracts/deployment.mantle-sepolia.json`.
+Demo assessment metadata lives in `contracts/demo-assessment.mantle-sepolia.json`.
 
-## Faucet notes
+## Local setup
 
-Mantle Sepolia gas token is testnet MNT.
+```bash
+npm install
+cp .env.example .env
+npm test
+npm run typecheck
+npm run dev
+```
 
-Useful faucets:
+The local app starts on `http://localhost:3000` unless `PORT` is set.
 
-- Official Mantle faucet: https://faucet.sepolia.mantle.xyz/
-- QuickNode Mantle Sepolia faucet: https://faucet.quicknode.com/mantle/sepolia
-- Chainlink Mantle Sepolia faucet: https://faucets.chain.link/mantle-sepolia
-- HackQuest faucet info: https://www.hackquest.io/faucets/5003
+Useful commands:
 
-Observed limitations:
+```bash
+npm run compile:contracts
+npm run check:deploy-wallet
+npm run deploy:sepolia
+npm run publish:demo
+```
 
-- Official Mantle faucet requires X authentication and wallet connect.
-- QuickNode accepted a pasted address but rejected this fresh wallet because it has no qualifying ETH mainnet balance.
-- HackQuest shows faucet balance but requires sign-in flow.
+## Environment
 
-If automatic faucet funding is blocked, fund the deployer manually with a small amount of Mantle Sepolia MNT.
+See `.env.example` for all supported variables.
+
+Important values:
+
+```env
+OPENROUTER_API_KEY=
+AI_MODEL=openai/gpt-5.4-mini
+DEPLOYER_PRIVATE_KEY=
+NEXT_PUBLIC_RWA_GUARDIAN_ADDRESS=0x46a1dca82461427fe095b8ae33859e89c55dd1dc
+AUDIT_CACHE_TTL_SECONDS=3600
+AUTO_DEPLOY=true
+AUTO_DEPLOY_BRANCH=main
+AUTO_DEPLOY_INTERVAL_MS=60000
+```
+
+`DEPLOYER_PRIVATE_KEY` and API keys must stay in `.env`; never commit or print them.
+
+## Deployment
+
+The public deployment runs behind Nginx/aaPanel with PM2 on `127.0.0.1:3004`.
+
+Built-in auto-deploy is enabled by environment variables:
+
+```env
+AUTO_DEPLOY=true
+AUTO_DEPLOY_BRANCH=main
+AUTO_DEPLOY_INTERVAL_MS=60000
+```
+
+When enabled, the running server checks `origin/<branch>` once per interval. If a new commit exists, it runs:
+
+```bash
+git fetch --quiet origin main
+git reset --hard origin/main
+npm ci
+npm test
+npm run typecheck
+```
+
+After validation it exits with code 0 so PM2 restarts the process with the new code. Failed deploy checks are logged and keep the current process alive. The old `.sh`/cron deploy wrapper has been removed so there is only one persistent deploy mechanism.
+
+## Security notes
+
+- `.env` is ignored by git.
+- Private keys are only read from environment variables.
+- The public UI does not show model names, fallback diagnostics, API keys, private keys, or internal cost accounting.
+- On-chain proof stores hashes/score metadata, not the full private report text.
+- Audit caching avoids duplicate on-chain writes during the TTL window.
+
+## If this were more than an MVP
+
+The next production-grade steps would be:
+
+- connect more Mantle RWA and DeFi positions;
+- add historical risk/yield charts;
+- verify the proof contract on the explorer;
+- deploy the proof contract to Mantle Mainnet if required by product/compliance goals;
+- add user accounts or signed wallet sessions;
+- add alerting for risk score changes;
+- support multi-wallet and organization portfolios;
+- run continuous monitoring instead of only on-demand audits;
+- add deeper liquidity, depeg, oracle, bridge, and smart-contract risk modules.
+
+For the hackathon, the current scope is intentionally focused: one clear wallet audit, an explainable AI report, and a verifiable Mantle proof trail.
