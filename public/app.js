@@ -51,8 +51,7 @@ function renderAudit(data) {
       Price source: ${position.priceSource}
     </div>
   `).join('') || '<p>No tracked RWA positions found.</p>';
-  const reportMarkdown = `${data.report.markdown}\n\n---\nAgent model: ${data.report.model} (${data.report.source})`;
-  reportEl.innerHTML = markdownToHtml(reportMarkdown, { headingOffset: 2 });
+  reportEl.innerHTML = markdownToHtml(data.report.markdown, { headingOffset: 2 });
   renderPublication(data.publication, data.cache);
 }
 

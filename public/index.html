@@ -12,9 +12,14 @@
       <p class="eyebrow">AI x RWA • Mantle Mainnet analysis • Sepolia proof</p>
       <h1 id="title">Mantle RWA Guardian</h1>
       <p class="lead">Enter a Mantle wallet. The AI agent reads mETH, USDY, mUSD, and FBTC exposure, asks an LLM for an explainable risk/yield report when configured, and publishes a verifiable assessment hash on Mantle Sepolia.</p>
+      <div class="hero-pills" aria-label="Product flow">
+        <span>Mainnet portfolio scan</span>
+        <span>Explainable AI report</span>
+        <span>Sepolia proof hash</span>
+      </div>
     </section>
 
-    <section class="card" aria-labelledby="analyze-heading">
+    <section class="card analyze-card" aria-labelledby="analyze-heading">
       <h2 id="analyze-heading">Analyze wallet</h2>
       <form id="analyze-form">
         <label for="wallet">Mantle wallet address</label>
@@ -45,6 +50,18 @@
       </article>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <p>
+      Created by <a href="https://blinddev.xyz/en" target="_blank" rel="noreferrer">blind developer</a>.
+    </p>
+    <p class="footer-links">
+      <a href="https://x.com/denis_skripnik" target="_blank" rel="noreferrer">X @denis_skripnik</a>
+      <span aria-hidden="true">•</span>
+      <a href="https://github.com/web3blind/mantle-rwa-guardian" target="_blank" rel="noreferrer">source code on GitHub</a>
+    </p>
+  </footer>
+
   <script type="module" src="/app.js"></script>
 </body>
 </html>
