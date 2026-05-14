@@ -1,3 +1,5 @@
+import { markdownToHtml } from './markdown.js';
+
 const form = document.querySelector('#analyze-form');
 const walletInput = document.querySelector('#wallet');
 const submitButton = form.querySelector('button[type="submit"]');
@@ -49,7 +51,8 @@ function renderAudit(data) {
       Price source: ${position.priceSource}
     </div>
   `).join('') || '<p>No tracked RWA positions found.</p>';
-  reportEl.textContent = `${data.report.markdown}\n\n---\nAgent model: ${data.report.model} (${data.report.source})`;
+  const reportMarkdown = `${data.report.markdown}\n\n---\nAgent model: ${data.report.model} (${data.report.source})`;
+  reportEl.innerHTML = markdownToHtml(reportMarkdown, { headingOffset: 2 });
   renderPublication(data.publication, data.cache);
 }
 

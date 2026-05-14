@@ -28,7 +28,17 @@ button[disabled] { opacity: .55; cursor: wait; }
 .score { font-size: 4rem; font-weight: 900; color: var(--accent-2); }
 .asset { padding: 14px 0; border-top: 1px solid rgba(255,255,255,.12); }
 .asset strong { color: var(--accent); }
-pre { white-space: pre-wrap; color: var(--text); line-height: 1.55; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+pre, .report-content { color: var(--text); line-height: 1.55; }
+.report-content { font-size: 1rem; }
+.report-content h3, .report-content h4, .report-content h5, .report-content h6 { margin: 1.4em 0 .55em; line-height: 1.2; }
+.report-content h3 { font-size: 1.35rem; color: var(--accent-2); }
+.report-content h4 { font-size: 1.15rem; color: var(--accent); }
+.report-content h5, .report-content h6 { font-size: 1rem; }
+.report-content p { margin: .75em 0; }
+.report-content ul { margin: .75em 0 .75em 1.25em; padding: 0; }
+.report-content li { margin: .35em 0; }
+.report-content code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: rgba(255,255,255,.08); border-radius: 6px; padding: .1em .35em; }
+.report-content pre { overflow-x: auto; background: rgba(0,0,0,.24); border-radius: 14px; padding: 14px; }
 a { color: var(--accent); }
 #status, #publish-status { color: var(--muted); }
 .error { color: var(--danger); }
