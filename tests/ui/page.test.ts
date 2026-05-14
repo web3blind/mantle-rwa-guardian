@@ -30,6 +30,14 @@ describe('audit result UX', () => {
     expect(appJs).not.toContain('Published on Mantle Sepolia:<br />');
   });
 
+  it('renders cache timing in human wording instead of raw ISO timestamps', () => {
+    expect(appJs).toContain('function timeUntil');
+    expect(appJs).toContain('function cacheWindowText');
+    expect(appJs).toContain('Cache refresh in ${remaining}');
+    expect(appJs).not.toContain('Cache expires ${cache.expiresAt}');
+    expect(appJs).not.toContain('Previous on-chain proof from ${cache.auditedAt}');
+  });
+
   it('rounds portfolio balances while preserving raw values in titles', () => {
     expect(appJs).toContain('function formatBalance');
     expect(appJs).toContain('function shortenLongTokens');

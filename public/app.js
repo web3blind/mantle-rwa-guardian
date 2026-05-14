@@ -51,6 +51,37 @@ function shortenLongTokens(text) {
   return String(text ?? '').replace(/0x[a-fA-F0-9]{40,64}/g, (value) => shortHash(value));
 }
 
+function formatDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value ?? '');
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function timeUntil(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const minutes = Math.max(0, Math.ceil((date.getTime() - Date.now()) / 60_000));
+  if (minutes < 1) return 'less than a minute';
+  if (minutes === 1) return '1 minute';
+  if (minutes < 60) return `${minutes} minutes`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest ? `${hours}h ${rest}m` : `${hours}h`;
+}
+
+function cacheWindowText(cache) {
+  const remaining = timeUntil(cache?.expiresAt);
+  const expires = formatDateTime(cache?.expiresAt);
+  const audited = cache?.auditedAt ? `Built ${formatDateTime(cache.auditedAt)}.` : '';
+  const ttl = remaining ? `Cache refresh in ${remaining}.` : `Cache expires ${expires}.`;
+  return cache?.hit ? `${audited} ${ttl}`.trim() : `Fresh Mantle Sepolia transaction. ${ttl}`;
+}
+
 function proofItem(label, value, options = {}) {
   const safeValue = escapeHtml(value);
   const displayValue = options.short ? shortHash(value) : value;
@@ -70,9 +101,7 @@ function proofItem(label, value, options = {}) {
 function renderPublication(publication, cache) {
   publishStatus.className = 'proof-panel';
   const cacheTitle = cache?.hit ? 'Cached proof reused' : 'New proof published';
-  const cacheText = cache?.hit
-    ? `Previous on-chain proof from ${cache.auditedAt}. Cache expires ${cache.expiresAt}.`
-    : `Fresh Mantle Sepolia transaction. Cache expires ${cache.expiresAt}.`;
+  const cacheText = cacheWindowText(cache);
 
   publishStatus.innerHTML = `
     <div class="proof-summary">
