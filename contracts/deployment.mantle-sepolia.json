@@ -1,0 +1,11 @@
+{
+  "network": "mantle-sepolia",
+  "chainId": 5003,
+  "deployer": "0x7ec2adFd40548c87458Ba838CaBb3DCF98609bD5",
+  "contract": "RWAGuardian",
+  "address": "0x46a1dca82461427fe095b8ae33859e89c55dd1dc",
+  "txHash": "0x6fc22d5e810af40d810ea7d960a321463ebfd1a56efcbc30b28ae8f1b938b57d",
+  "blockNumber": "38619492",
+  "gasUsed": "459793",
+  "deployedAt": "2026-05-14T18:34:18.189Z"
+}

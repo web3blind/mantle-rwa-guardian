@@ -1,0 +1,35 @@
+{
+  "name": "mantle-rwa-guardian",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "verify:assets": "tsx scripts/verify-assets.ts",
+    "analyze:wallet": "tsx scripts/analyze-wallet.ts",
+    "demo:report": "tsx scripts/demo-report.ts",
+    "compile:contracts": "tsx scripts/compile-contracts.ts",
+    "deploy:sepolia": "tsx scripts/deploy-sepolia.ts",
+    "check:deploy-wallet": "tsx scripts/check-deploy-wallet.ts",
+    "publish:demo": "tsx scripts/publish-demo-assessment.ts",
+    "dev": "tsx src/server.ts",
+    "start": "tsx src/server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "viem": "^2.49.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "solc": "^0.8.35",
+    "tsx": "^4.22.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
+  }
+}

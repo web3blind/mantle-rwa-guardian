@@ -1,0 +1,11 @@
+{
+  "contract": "0x46a1dca82461427fe095b8ae33859e89c55dd1dc",
+  "wallet": "0x588846213a30fd36244e0ae0ebb2374516da836c",
+  "riskScore": 76,
+  "portfolioHash": "0x84bfbe2681a4c48db1b3f91a498ee3a812b866f769c55583256e01cdd7e229be",
+  "reportHash": "0x9bcac29b8fc32ac2afbf3bae42ebf721e6b62cedfe77f51d394e2181f897a1ee",
+  "txHash": "0x9e5203e66438764323842cc867a90590fd49fcd6de2c15c39b550b8136cd418d",
+  "blockNumber": "38619524",
+  "assessmentCount": "1",
+  "publishedAt": "2026-05-14T18:35:23.306Z"
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+coverage/
+.cache/
+.DS_Store
+contracts/broadcast/
+contracts/cache/
+data/

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mantle RWA Guardian</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero" aria-labelledby="title">
+      <p class="eyebrow">AI x RWA • Mantle Mainnet analysis • Sepolia proof</p>
+      <h1 id="title">Mantle RWA Guardian</h1>
+      <p class="lead">Enter a Mantle wallet. The AI agent reads mETH, USDY, mUSD, and FBTC exposure, asks an LLM for an explainable risk/yield report when configured, and publishes a verifiable assessment hash on Mantle Sepolia.</p>
+    </section>
+
+    <section class="card" aria-labelledby="analyze-heading">
+      <h2 id="analyze-heading">Analyze wallet</h2>
+      <form id="analyze-form">
+        <label for="wallet">Mantle wallet address</label>
+        <div class="row">
+          <input id="wallet" name="wallet" autocomplete="off" spellcheck="false" value="0x588846213a30fd36244e0ae0ebb2374516da836c" />
+          <button type="submit">Run audit and publish proof</button>
+        </div>
+      </form>
+      <p id="status" role="status" aria-live="polite">Ready.</p>
+    </section>
+
+    <section id="result" class="grid" hidden>
+      <article class="card score-card" aria-labelledby="score-heading">
+        <h2 id="score-heading">Risk score</h2>
+        <div id="score" class="score">—</div>
+        <p id="summary"></p>
+        <p id="publish-status" role="status" aria-live="polite"></p>
+      </article>
+
+      <article class="card" aria-labelledby="positions-heading">
+        <h2 id="positions-heading">Tracked positions</h2>
+        <div id="positions"></div>
+      </article>
+
+      <article class="card wide" aria-labelledby="report-heading">
+        <h2 id="report-heading">Agent report</h2>
+        <pre id="report"></pre>
+      </article>
+    </section>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

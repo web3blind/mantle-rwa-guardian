@@ -1,0 +1,24 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "RWAGuardian.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.24;\n\ncontract RWAGuardian {\n    struct Assessment {\n        address wallet;\n        uint256 sourceChainId;\n        uint8 riskScore;\n        bytes32 portfolioHash;\n        bytes32 reportHash;\n        string summary;\n        uint256 timestamp;\n        address reporter;\n    }\n\n    Assessment[] public assessments;\n\n    event AssessmentPublished(\n        uint256 indexed assessmentId,\n        address indexed wallet,\n        uint256 indexed sourceChainId,\n        uint8 riskScore,\n        bytes32 portfolioHash,\n        bytes32 reportHash,\n        address reporter,\n        uint256 timestamp\n    );\n\n    function publishAssessment(\n        address wallet,\n        uint256 sourceChainId,\n        uint8 riskScore,\n        bytes32 portfolioHash,\n        bytes32 reportHash,\n        string calldata summary\n    ) external returns (uint256 assessmentId) {\n        require(wallet != address(0), \"wallet=0\");\n        require(riskScore <= 100, \"riskScore>100\");\n        require(portfolioHash != bytes32(0), \"portfolioHash=0\");\n        require(reportHash != bytes32(0), \"reportHash=0\");\n\n        assessments.push(Assessment({\n            wallet: wallet,\n            sourceChainId: sourceChainId,\n            riskScore: riskScore,\n            portfolioHash: portfolioHash,\n            reportHash: reportHash,\n            summary: summary,\n            timestamp: block.timestamp,\n            reporter: msg.sender\n        }));\n\n        assessmentId = assessments.length - 1;\n        emit AssessmentPublished(assessmentId, wallet, sourceChainId, riskScore, portfolioHash, reportHash, msg.sender, block.timestamp);\n    }\n\n    function assessmentCount() external view returns (uint256) {\n        return assessments.length;\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "metadata"
+        ]
+      }
+    }
+  }
+}
