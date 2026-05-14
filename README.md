@@ -60,7 +60,7 @@ AUTO_DEPLOY_BRANCH=main
 AUTO_DEPLOY_INTERVAL_MS=60000
 ```
 
-When enabled, the running server resolves the repository root from its own module path, checks `origin/<branch>` once per interval, validates updates with `npm ci`, `npm test`, and `npm run typecheck`, then exits with code 0 so PM2 can restart it with the new code. Failed deploy checks are logged and keep the current process alive. `scripts/auto-deploy.sh` remains available as an optional external wrapper for hosts that prefer cron or panel-managed tasks.
+When enabled, the running server resolves the repository root from its own module path, checks `origin/<branch>` once per interval, validates updates with `npm ci`, `npm test`, and `npm run typecheck`, then exits with code 0 so PM2 can restart it with the new code. Failed deploy checks are logged and keep the current process alive. The old cron/panel shell deploy wrapper was removed; use the built-in watcher only, so there is a single deploy mechanism.
 
 - `GET /api/analyze?wallet=<address>` returns a live Mantle Mainnet portfolio analysis, risk score, AI-generated agent report when OpenRouter is configured, and report/portfolio hashes.
 - `POST /api/audit` runs the full demo flow in one backend action: collect data, ask the LLM, publish hashes to `RWAGuardian` on Mantle Sepolia, then return the report plus transaction link. If the same wallet was audited during the last 1 hour, it returns the cached SQLite record and old transaction link instead of publishing again.
