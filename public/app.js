@@ -11,55 +11,136 @@ const positionsEl = document.querySelector('#positions');
 const reportEl = document.querySelector('#report');
 const publishStatus = document.querySelector('#publish-status');
 
-function setStatus(message, isError = false) {
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function setStatus(message, variant = 'info') {
   statusEl.textContent = message;
-  statusEl.className = isError ? 'error' : '';
+  statusEl.className = `status-banner status-${variant}`;
 }
 
 function usd(value) {
   return `$${Math.round(value).toLocaleString('en-US')}`;
 }
 
+function shortHash(value) {
+  const text = String(value ?? '');
+  if (text.length <= 18) return text;
+  return `${text.slice(0, 10)}…${text.slice(-8)}`;
+}
+
+function formatBalance(value) {
+  const text = String(value ?? '0');
+  const number = Number(text);
+  if (Number.isFinite(number)) {
+    return number.toLocaleString('en-US', {
+      maximumFractionDigits: number >= 1000 ? 2 : 4
+    });
+  }
+  const [whole, fraction = ''] = text.split('.');
+  return fraction ? `${whole}.${fraction.slice(0, 4)}` : whole;
+}
+
+function shortenLongTokens(text) {
+  return String(text ?? '').replace(/0x[a-fA-F0-9]{40,64}/g, (value) => shortHash(value));
+}
+
+function proofItem(label, value, options = {}) {
+  const safeValue = escapeHtml(value);
+  const displayValue = options.short ? shortHash(value) : value;
+  const valueMarkup = options.href
+    ? `<a class="proof-link" href="${escapeHtml(options.href)}" target="_blank" rel="noreferrer" title="${safeValue}">${escapeHtml(displayValue)}</a>`
+    : `<code class="proof-code" title="${safeValue}">${escapeHtml(displayValue)}</code>`;
+
+  return `
+    <div class="proof-item">
+      <span class="proof-label">${escapeHtml(label)}</span>
+      <span class="proof-value">${valueMarkup}</span>
+      ${options.copy ? `<button class="copy-button" type="button" data-copy="${safeValue}" aria-label="Copy ${escapeHtml(label)}">Copy</button>` : ''}
+    </div>
+  `;
+}
+
 function renderPublication(publication, cache) {
-  publishStatus.className = '';
-  const cacheLine = cache?.hit
-    ? `Cached audit: reused previous on-chain proof from ${cache.auditedAt}. Cache expires: ${cache.expiresAt}.<br />`
-    : `New on-chain proof published. Cache expires: ${cache.expiresAt}.<br />`;
+  publishStatus.className = 'proof-panel';
+  const cacheTitle = cache?.hit ? 'Cached proof reused' : 'New proof published';
+  const cacheText = cache?.hit
+    ? `Previous on-chain proof from ${cache.auditedAt}. Cache expires ${cache.expiresAt}.`
+    : `Fresh Mantle Sepolia transaction. Cache expires ${cache.expiresAt}.`;
+
   publishStatus.innerHTML = `
-    ${cacheLine}
-    Published on Mantle Sepolia:<br />
-    <a href="${publication.explorerUrl}" target="_blank" rel="noreferrer">${publication.txHash}</a><br />
-    Contract: ${publication.contract}<br />
-    Block: ${publication.blockNumber}<br />
-    Assessment count: ${publication.assessmentCount}<br />
-    Wallet: ${publication.wallet}<br />
-    Score: ${publication.riskScore}/100<br />
-    Portfolio hash: ${publication.portfolioHash}<br />
-    Report hash: ${publication.reportHash}
+    <div class="proof-summary">
+      <span class="proof-kicker">${escapeHtml(cacheTitle)}</span>
+      <span>${escapeHtml(cacheText)}</span>
+    </div>
+    <div class="proof-grid" aria-label="On-chain proof details">
+      ${proofItem('Transaction', publication.txHash, { href: publication.explorerUrl, short: true, copy: true })}
+      ${proofItem('Contract', publication.contract, { short: true, copy: true })}
+      ${proofItem('Wallet', publication.wallet, { short: true, copy: true })}
+      ${proofItem('Portfolio hash', publication.portfolioHash, { short: true, copy: true })}
+      ${proofItem('Report hash', publication.reportHash, { short: true, copy: true })}
+      ${proofItem('Block', publication.blockNumber)}
+      ${proofItem('Assessment count', publication.assessmentCount)}
+      ${proofItem('Score', `${publication.riskScore}/100`)}
+    </div>
   `;
 }
 
 function renderAudit(data) {
   resultEl.hidden = false;
   scoreEl.textContent = `${data.assessment.score}/100`;
-  summaryEl.textContent = data.assessment.summary;
+  summaryEl.textContent = shortenLongTokens(data.assessment.summary);
   positionsEl.innerHTML = data.snapshot.positions.map((position) => `
     <div class="asset">
-      <strong>${position.symbol}</strong><br />
-      Balance: ${position.balance}<br />
-      Value: ${usd(position.valueUsd)} (${position.sharePct.toFixed(1)}%)<br />
-      Price source: ${position.priceSource}
+      <div class="asset-head">
+        <strong>${escapeHtml(position.symbol)}</strong>
+        <span>${position.sharePct.toFixed(1)}%</span>
+      </div>
+      <dl class="asset-metrics">
+        <div>
+          <dt>Balance</dt>
+          <dd title="${escapeHtml(position.balance)}">${escapeHtml(formatBalance(position.balance))}</dd>
+        </div>
+        <div>
+          <dt>Value</dt>
+          <dd>${usd(position.valueUsd)}</dd>
+        </div>
+        <div>
+          <dt>Price source</dt>
+          <dd>${escapeHtml(position.priceSource)}</dd>
+        </div>
+      </dl>
     </div>
   `).join('') || '<p>No tracked RWA positions found.</p>';
   reportEl.innerHTML = markdownToHtml(data.report.markdown, { headingOffset: 2 });
   renderPublication(data.publication, data.cache);
 }
 
+publishStatus.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-copy]');
+  if (!button) return;
+  const value = button.getAttribute('data-copy');
+  try {
+    await navigator.clipboard.writeText(value);
+    button.textContent = 'Copied';
+    setTimeout(() => { button.textContent = 'Copy'; }, 1400);
+  } catch {
+    button.textContent = 'Copy failed';
+    setTimeout(() => { button.textContent = 'Copy'; }, 1800);
+  }
+});
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const wallet = walletInput.value.trim();
   submitButton.disabled = true;
-  setStatus('Running AI audit, publishing proof to Mantle Sepolia, then returning the transaction…');
+  setStatus('Running AI audit, publishing proof to Mantle Sepolia, then returning the transaction…', 'info');
   publishStatus.textContent = '';
   resultEl.hidden = true;
   try {
@@ -72,9 +153,9 @@ form.addEventListener('submit', async (event) => {
     if (!response.ok || data.error) throw new Error(data.error || 'Audit failed');
     renderAudit(data);
     const cacheNote = data.cache?.hit ? 'cached proof reused' : 'new proof published';
-    setStatus(`Audit complete at Mantle block ${data.snapshot.blockNumber}; ${cacheNote} in tx ${data.publication.txHash}.`);
+    setStatus(`Audit complete at Mantle block ${data.snapshot.blockNumber}; ${cacheNote}.`, 'success');
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : 'Audit failed', true);
+    setStatus(error instanceof Error ? error.message : 'Audit failed', 'error');
   } finally {
     submitButton.disabled = false;
   }
