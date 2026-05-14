@@ -1,0 +1,15 @@
+Mantle RWA Guardian is an AI risk and yield copilot for Mantle wallets.
+
+A wallet balance is not enough for real-world-asset and yield-bearing positions. Users need to understand concentration, risk, and whether the assessment can be verified.
+
+In this demo, the app reads real Mantle Mainnet data for a wallet, detects tracked assets such as mETH, USDY, mUSD, and FBTC, and produces a clear risk score.
+
+Then the AI agent writes a human-readable report explaining the portfolio, the main findings, and the risk context.
+
+The important part is that the assessment is not just text on a website. Mantle RWA Guardian publishes portfolio and report hashes to a Mantle Sepolia proof contract. The result page gives copyable proof details: transaction hash, contract address, wallet address, portfolio hash, and report hash.
+
+So the product flow is simple: real Mantle Mainnet portfolio data, explainable AI analysis, and a verifiable Mantle proof trail.
+
+This MVP is focused on a clean hackathon demo, but the same pattern can grow into continuous wallet monitoring, alerts, historical risk charts, more Mantle assets, and deeper liquidity, oracle, bridge, and depeg risk modules.
+
+Mantle RWA Guardian makes RWA portfolio risk readable for users and verifiable on-chain for everyone else.

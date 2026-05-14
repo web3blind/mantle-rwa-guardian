@@ -8,3 +8,4 @@ coverage/
 contracts/broadcast/
 contracts/cache/
 data/
+artifacts/
