@@ -5,6 +5,7 @@ import { extname, join, normalize } from 'node:path';
 import { analyzeWallet } from './api/analyzeWallet.js';
 import { auditWallet } from './api/auditWallet.js';
 import { publishAssessment } from './api/publishAssessment.js';
+import { isAutoDeployEnabled, startAutoDeployWatcher } from './autoDeploy.js';
 
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = join(process.cwd(), 'public');
@@ -87,5 +88,6 @@ export function createGuardianServer() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   createGuardianServer().listen(PORT, () => {
     console.log(`Mantle RWA Guardian listening on http://localhost:${PORT}`);
+    if (isAutoDeployEnabled()) startAutoDeployWatcher();
   });
 }
